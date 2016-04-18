@@ -16,7 +16,7 @@ def run_sim(orderQueueSize, payQueueSize, pickupQueueSize):
 
 
 def main():
-    print("I want a double cheeseburger and hold the lettuce, don't be frontin' son, no seeds on the bun.")
+    run_sim(5,5,5)
 
 if __name__ == "__main__":
     main()

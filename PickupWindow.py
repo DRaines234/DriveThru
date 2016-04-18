@@ -1,15 +1,18 @@
 ##PickupWindow where they give you a burger with pickles when you asked for no pickles
 
+import rvgs.py
 
-queueSize = 0
+class PickupWindow:
+    can_move = True
+    queueSize = 0
+
+    def get_service(self):
+        return rvgs.exponential(2) #chose exponential because it is skewed toward smaller numbers but if they mess up we have a possiblilty of getting higher numbers
+
+    def add_to_queue(self): # arrival
+        self.queueSize += 1
 
 
 
-
-def add_to_queue():
-    queueSize += 1
-
-
-
-def get_queue_size():
-    return queueSize
+    def get_queue_size(self):
+        return self.queueSize

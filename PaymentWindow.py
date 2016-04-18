@@ -1,14 +1,15 @@
 #Payment window, aka shit where's my wallet.
+import rvgs.py
+class PaymentWindow:
 
+    can_move = True
+    queueSize = 0
 
+    def get_service(self):
+        return rvgs.uniform(0,1)
 
+    def add_to_queue(self): #arrival
+        self.queueSize += 1
 
-queueSize = 0
-
-def add_to_queue():
-    queueSize += 1
-
-
-
-def get_queue_size():
-    return queueSize
+    def get_queue_size(self):
+        return self.queueSize
