@@ -17,3 +17,6 @@ class PaymentWindow:
 
     def set_max(self, max):
         self.maximum = max
+
+    def pay_complete(self):
+        self.queueSize -= 1
