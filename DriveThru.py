@@ -1,13 +1,18 @@
 __author__ = 'Derek and Spencer'
 
 import OrderQueue
+import PaymentWindow
+import PickupWindow
 import rngs
 
-def run_sim(orderQueueSize, payQueueSize, pickupQueueSize):
-    orderQSize = orderQueueSize
-    payQSize = payQueueSize
-    pickupQSize = pickupQueueSize
+order = OrderQueue()
+payment = PaymentWindow()
+pickup = PickupWindow()
 
+def run_sim(orderQueueSize, payQueueSize, pickupQueueSize):
+    order.set_max = orderQueueSize
+    payment.set_max = payQueueSize
+    pickup.set_max = pickupQueueSize
 
     #currently without any intake from data
 

@@ -4,6 +4,7 @@ import rvgs.py
 class OrderQueue:
     queueSize = 0
     can_move = True
+    maximum = 0
 
     def get_service(self):
         total_time = 0
@@ -16,3 +17,6 @@ class OrderQueue:
 
     def get_queue_size(self):
         return self.queueSize
+
+    def set_max(self, max):
+        self.maximum = max
