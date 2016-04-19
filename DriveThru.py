@@ -12,6 +12,7 @@ order = OrderQueue()
 payment = PaymentWindow()
 pickup = PickupWindow()
 
+
 def get_arrival():
     get_arrival().arrival_time += rvgs.exponential(2.0) #adjusting this number will adjust our inter-arrival time
     return get_arrival().arrival_time # arrival time is one of those function variable things that I cant remember the name of
@@ -47,9 +48,14 @@ def run_sim(orderQueueSize, payQueueSize, pickupQueueSize, iterations):
     #currently without any intake from data
 
     while(t.arrival < STOP): # keep running the simulation until we reach our stop time
+        nextTime = EL.getNextEvent().time # BAM! get our event from the heap in the event list! and get its time element
+
+        #------------------------------------------------------------------------------------------------
+        # majority of logic goes in here
+
         #check if queue is empty, then add to the queue for order window
         if order.get_queue_size < order.get_max():
-            order.add_to_queue()
+            order.add_to_queue() # Process an arrival in here
 
         #check if queue is empty, then add to the queue for payment window
         if payment.get_queue_size < payment.get_max():
@@ -59,6 +65,8 @@ def run_sim(orderQueueSize, payQueueSize, pickupQueueSize, iterations):
         if pickup.get_queue_size < pickup.get_max():
             pickup.add_to_queue()
 
+
+        #--------------------------------------------------------------------------------------------------
 def main():
     run_sim(5,5,5,100) #q1, q2, q3, stop
 
