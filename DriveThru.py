@@ -11,7 +11,7 @@ import EventList
 order = OrderQueue()
 payment = PaymentWindow()
 pickup = PickupWindow()
-
+totalCars = 0
 
 def get_arrival():
     get_arrival().arrival_time += rvgs.exponential(2.0) #adjusting this number will adjust our inter-arrival time
@@ -48,14 +48,28 @@ def run_sim(orderQueueSize, payQueueSize, pickupQueueSize, iterations):
     #currently without any intake from data
 
     while(t.arrival < STOP): # keep running the simulation until we reach our stop time
-        nextTime = EL.getNextEvent().time # BAM! get our event from the heap in the event list! and get its time element
+        event = EL.getNextEvent()
+        nextTime = event.time # BAM! get our event from the heap in the event list! and get its time element
 
         #------------------------------------------------------------------------------------------------
         # majority of logic goes in here
 
-        #check if queue is empty, then add to the queue for order window
-        if order.get_queue_size < order.get_max():
-            order.add_to_queue() # Process an arrival in here
+        #process arrival
+        if event.eventType.value == 1:
+            order.add_to_queue() #add one car to the order window structure
+            totalCars = totalCars + 1 #add one to total cars that have gone through drive through
+            #check if next queue has room, if it does , schedule a completions because we can fit a car in
+            if payment.get_queue_size() < payment.get_max():
+                orderComplete = Event.Event()
+                orderComplete.eventType = Event.eventType(2)#register event as an order completion
+                orderComplete.time = t.current + order.get_service() #calculate service time and add it to curr time to get completion time
+                EL.scheduleEvent(orderComplete)
+
+            arrival = Event.Event() #schedule next arrival
+            t.arrival = get_arrival()
+            arrival.time = t.arrival
+            arrival.eventType = Event.eventType(1) #set this event as an type arrival
+            EL. schedule(arrival) #add arrival to event list
 
         #check if queue is empty, then add to the queue for payment window
         if payment.get_queue_size < payment.get_max():
