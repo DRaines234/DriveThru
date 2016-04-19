@@ -19,5 +19,8 @@ class PickupWindow:
     def set_max(self, max):
         self.maximum = max
 
+    def get_max(self):
+        return self.maximum
+
     def pickup_complete(self):
         self.queueSize -= 1

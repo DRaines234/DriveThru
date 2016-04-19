@@ -21,5 +21,8 @@ class OrderQueue:
     def set_max(self, max):
         self.maximum = max
 
+    def get_max(self):
+        return self.maximum
+
     def order_complete(self):
         self.queueSize -= 1
