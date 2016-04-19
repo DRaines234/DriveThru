@@ -9,27 +9,30 @@ order = OrderQueue()
 payment = PaymentWindow()
 pickup = PickupWindow()
 
-def run_sim(orderQueueSize, payQueueSize, pickupQueueSize):
+def run_sim(orderQueueSize, payQueueSize, pickupQueueSize, iterations):
     order.set_max = orderQueueSize
     payment.set_max = payQueueSize
     pickup.set_max = pickupQueueSize
+    STOP = iterations
+    t = 0 # initialize the event clock to time 0
 
     #currently without any intake from data
 
-    #check if queue is empty, then add to the queue for order window
-    if order.get_queue_size < order.get_max:
-        order.add_to_queue
+    while(t < STOP): # keep running the simulation until we reach our stop time
+        #check if queue is empty, then add to the queue for order window
+        if order.get_queue_size < order.get_max():
+            order.add_to_queue()
 
-    #check if queue is empty, then add to the queue for payment window
-    if payment.get_queue_size < payment.get_max:
-        payment.add_to_queue
+        #check if queue is empty, then add to the queue for payment window
+        if payment.get_queue_size < payment.get_max():
+            payment.add_to_queue()
 
-    #check if queue is empty, then add to the queue for pickup window
-    if pickup.get_queue_size < pickup.get_max:
-        pickup.add_to_queue
+        #check if queue is empty, then add to the queue for pickup window
+        if pickup.get_queue_size < pickup.get_max():
+            pickup.add_to_queue()
 
 def main():
-    run_sim(5,5,5)
+    run_sim(5,5,5,100) #q1, q2, q3, stop
 
 if __name__ == "__main__":
     main()
