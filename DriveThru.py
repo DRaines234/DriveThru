@@ -18,12 +18,8 @@ def get_arrival():
 
 class time_structure:
     def __init__(self):
-        self.arrival = -1                # next arrival time
-        self.orderCompletion = -1        # next order completion time
-        self.paymentCompletion = -1      # next payment completion time
-        self.pickupCopmletion = -1       # next pickup completion time
-        self.current = -1                # current time
-
+        self.arrival = -1                # next arrival time, we keep this here just so we have a running arrival
+        self.current = -1                # we have to keep track of the current time
 
 def run_sim(orderQueueSize, payQueueSize, pickupQueueSize, iterations):
     order.set_max = orderQueueSize
@@ -31,20 +27,22 @@ def run_sim(orderQueueSize, payQueueSize, pickupQueueSize, iterations):
     pickup.set_max = pickupQueueSize
     STOP = iterations
     infinity = STOP * 100 # should be a good bet that our simulation won't run this long
-    eventList = heapq # initialize an event list as aa heapq
+    EL = EventList.EventList() # create a new event list object
 
     get_arrival().arrival_time = 0 # initialize arrival time to 0
 
 
     t = time_structure()
     t.current = 0 # set the simulation clock to 0
-    t.arrival = get_arrival() # get our first arrival time
 
+    arrival = Event.Event() # create a new event object
+    t.arrival = get_arrival() # get our first arrival time, we might get rid of this
+    arrival.time = t.arrival # set the objects time to t.arrival
+    arrival.eventType = Event.eventType(1) # set the enum to make the event type be an arrival
+    EL.scheduleEvent(arrival) # add the arrival to the event list.
 
-    # set completions to infinity to show we don't have any completions yet.
-    t.orderCompletion = infinity
-    t.paymentCompletion = infinity
-    t.pickupCopmletion = infinity
+    # We do not need to set the completions to infinity because it is the same as the objects not existing.
+
 
     #currently without any intake from data
 

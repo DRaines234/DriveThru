@@ -2,7 +2,7 @@ __author__ = 'Derek'
 
 import heapq
 
-class EventLIst:
+class EventList:
     heap = []
     heapq.heapify(heap) # create an empty list and convert it to a heap
 
