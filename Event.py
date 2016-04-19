@@ -7,7 +7,8 @@ class eventType(Enum):
     orderCompletion = 2
     paymentCompletion = 3
     pickupCompletion = 4
-    move = 5 # We might need this as an event, but we may not
+    moveOrder = 5 #idea is to have it act as an order completion?
+    movePay = 6 # idea is to have it act as a payment completion?
 
 class Event:
     eventType = -1 # this is for error checking. they are technicaly PUBLIC so we will change them in the program by using event.eventType(1) etc
