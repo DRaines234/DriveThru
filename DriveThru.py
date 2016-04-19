@@ -4,6 +4,7 @@ import OrderQueue
 import PaymentWindow
 import PickupWindow
 import rvgs
+import heapq #import for heap data structure!
 
 order = OrderQueue()
 payment = PaymentWindow()
@@ -27,13 +28,17 @@ def run_sim(orderQueueSize, payQueueSize, pickupQueueSize, iterations):
     payment.set_max = payQueueSize
     pickup.set_max = pickupQueueSize
     STOP = iterations
-    infinity = STOP * 1000
+    infinity = STOP * 100 # should be a good bet that our simulation won't run this long
+    eventList = heapq # initialize an event list as aa heapq
 
     get_arrival().arrival_time = 0 # initialize arrival time to 0
+
 
     t = time_structure()
     t.current = 0 # set the simulation clock to 0
     t.arrival = get_arrival() # get our first arrival time
+
+
     # set completions to infinity to show we don't have any completions yet.
     t.orderCompletion = infinity
     t.paymentCompletion = infinity
@@ -41,7 +46,7 @@ def run_sim(orderQueueSize, payQueueSize, pickupQueueSize, iterations):
 
     #currently without any intake from data
 
-    while(t < STOP): # keep running the simulation until we reach our stop time
+    while(t.arrival < STOP): # keep running the simulation until we reach our stop time
         #check if queue is empty, then add to the queue for order window
         if order.get_queue_size < order.get_max():
             order.add_to_queue()
