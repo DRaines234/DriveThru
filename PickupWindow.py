@@ -1,6 +1,6 @@
 ##PickupWindow where they give you a burger with pickles when you asked for no pickles
 
-import rvgs.py
+import rvgs
 
 class PickupWindow:
     can_move = True

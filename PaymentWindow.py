@@ -1,5 +1,5 @@
 #Payment window, aka shit where's my wallet.
-import rvgs.py
+import rvgs
 class PaymentWindow:
 
     can_move = True

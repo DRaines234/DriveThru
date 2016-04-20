@@ -11,11 +11,11 @@ import EventList
 order = OrderQueue.OrderQueue()
 payment = PaymentWindow.PaymentWindow()
 pickup = PickupWindow.PickupWindow()
-totalCars = 0
+
 
 def get_arrival():
-    get_arrival().arrival_time += rvgs.exponential(2.0) #adjusting this number will adjust our inter-arrival time
-    return get_arrival().arrival_time # arrival time is one of those function variable things that I cant remember the name of
+    get_arrival.arrival_time += rvgs.exponential(2.0) #adjusting this number will adjust our inter-arrival time
+    return get_arrival.arrival_time # arrival time is one of those function variable things that I cant remember the name of
 
 class time_structure:
     def __init__(self):
@@ -23,13 +23,14 @@ class time_structure:
         self.current = -1                # we have to keep track of the current time
 
 def run_sim(payQueueSize, pickupQueueSize, iterations):
+    totalCars = 0
     payment.set_max(payQueueSize)
     pickup.set_max(pickupQueueSize)
     STOP = iterations
     infinity = STOP * 100 # should be a good bet that our simulation won't run this long
     EL = EventList.EventList() # create a new event list object
 
-    get_arrival().arrival_time = 0 # initialize arrival time to 0
+    get_arrival.arrival_time = 0 # initialize arrival time to 0
 
 
     t = time_structure()
@@ -97,7 +98,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
             EL.scheduleEvent(pickupComplete) # add to event list
 
         #process pickup
-        else:
+        elif event.eventType.value == 4:
             pickup.pickup_complete() #remove car from pickup
 
 

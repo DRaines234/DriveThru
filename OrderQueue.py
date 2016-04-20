@@ -1,5 +1,5 @@
 #Order Station, this takes a while because you can't understand a god damn thing the person taking the order is saying
-import rvgs.py
+import rvgs
 
 class OrderQueue:
     queueSize = 0
@@ -9,6 +9,7 @@ class OrderQueue:
     def get_service(self):
         total_time = 0
         num_items = rvgs.uniform(1,6)
+        int(num_items)
         for i in range(0, num_items):
             total_time = total_time + rvgs.geometric(.02)
 
