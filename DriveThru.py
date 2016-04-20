@@ -74,6 +74,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
             arrival.time = t.arrival
             arrival.eventType = Event.eventType(1) #set this event as an type arrival
             EL. scheduleEvent(arrival) #add arrival to event list
+            print("arrival" , t.current)
 
         #process order completion
         elif event.eventType.value == 2:
@@ -86,6 +87,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
                 paymentComplete.eventType = Event.eventType(3) #register it as a payment complete
                 paymentComplete.time = t.current + payment.get_service()
                 EL.scheduleEvent(paymentComplete) #add to event list
+                print("order complete" , t.current)
 
         #payment completion
         elif event.eventType.value == 3:
@@ -96,11 +98,13 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
             pickupComplete.eventType = Event.eventType(4) #register it as a pickup completion
             pickupComplete.time = t.current + pickup.get_service()
             EL.scheduleEvent(pickupComplete) # add to event list
+            print("payment complete" , t.current)
 
         #process pickup
         elif event.eventType.value == 4:
             pickup.pickup_complete() #remove car from pickup
-
+            print("process complete" , t.current)
+    print(totalCars)
 
 
         #--------------------------------------------------------------------------------------------------
