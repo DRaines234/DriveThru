@@ -73,7 +73,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
             t.arrival = get_arrival()
             arrival.time = t.arrival
             arrival.eventType = Event.eventType(1) #set this event as an type arrival
-            EL. schedule(arrival) #add arrival to event list
+            EL. scheduleEvent(arrival) #add arrival to event list
 
         #process order completion
         elif event.eventType.value == 2:

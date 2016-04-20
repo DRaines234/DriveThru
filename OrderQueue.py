@@ -8,10 +8,11 @@ class OrderQueue:
 
     def get_service(self):
         total_time = 0
-        num_items = rvgs.uniform(1,6)
-        int(num_items)
+        num_items = int(rvgs.uniform(1,6))
         for i in range(0, num_items):
             total_time = total_time + rvgs.geometric(.02)
+
+        return total_time
 
     def add_to_queue(self): #arrival
         self.queueSize += 1
