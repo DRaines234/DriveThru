@@ -73,6 +73,8 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
                 orderComplete.eventType = Event.eventType(2)#register event as an order completion
                 orderComplete.time = t.current + order.get_service() #calculate service time and add it to curr time to get completion time
                 EL.scheduleEvent(orderComplete) #add to event list
+                order.order_complete() #removes a car from the order queue
+                payment.add_to_queue() #adds the car to the payment window
             else:
                 moveOrder = Event.Event()
                 moveOrder.eventType = Event.eventType(5) # register event as move order car event
@@ -91,14 +93,14 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
 
         #process order completion
         elif event.eventType.value == 2:
-            order.order_complete() #removes a car from the order queue
-            payment.add_to_queue() #adds the car to the payment window
             # check if payment window has room
             if pickup.get_queue_size() < pickup.get_max():
                 paymentComplete = Event.Event()
                 paymentComplete.eventType = Event.eventType(3) #register it as a payment complete
                 paymentComplete.time = t.current + payment.get_service()
                 EL.scheduleEvent(paymentComplete) #add to event list
+                payment.pay_complete() #remove  from payment window
+                pickup.add_to_queue() # add car to pickup queue
                 #print("order complete", t.current)
                 orderCompleteCount += 1
             else:
@@ -109,8 +111,6 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
 
         #payment completion
         elif event.eventType.value == 3:
-            payment.pay_complete() #remove  from payment window
-            pickup.add_to_queue() # add car to pickup queue
             pickupComplete = Event.Event()
             pickupComplete.eventType = Event.eventType(4) #register it as a pickup completion
             pickupComplete.time = t.current + pickup.get_service()
@@ -132,6 +132,8 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
                 orderComplete.eventType = Event.eventType(2) # register event as an order complete
                 orderComplete.time = t.current #if there is room, schedule the order completion now
                 EL.scheduleEvent(orderComplete) #add event to event list
+                order.order_complete() #removes a car from the order queue
+                payment.add_to_queue() #adds the car to the payment window
             # if next window is full, make another can order move event.
             else:
                 moveOrder = Event.Event()
@@ -146,6 +148,8 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
                 paymentComplete.eventType = Event.eventType(3) #register as a payment completion event
                 paymentComplete.time = t.current # if there's room in the queue, schedule a payment completion now
                 EL.scheduleEvent(paymentComplete) # add event to event list
+                payment.pay_complete() #remove  from payment window
+                pickup.add_to_queue() # add car to pickup queue
                 #if next window is full schedule another
            else:
                 paymentMove = Event.Event()
