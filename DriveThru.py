@@ -52,7 +52,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
 
     #currently without any intake from data
 
-    while(t.arrival < STOP): # keep running the simulation until we reach our stop time
+    while(t.arrival < STOP) or (order.get_queue_size() + payment.get_queue_size() + pickup.get_queue_size()) > 0: # keep running the simulation until we reach our stop time
         event = EL.getNextEvent()
         nextTime = event.time # BAM! get our event from the heap in the event list! and get its time element
 
