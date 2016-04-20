@@ -7,7 +7,7 @@ class PaymentWindow:
     maximum = 0
 
     def get_service(self):
-        return rvgs.uniform(0,1)
+        return rvgs.exponential(2) # for simplicity making the payment the same as the pickup, since food cooking time should be irrelevant, each window should have the same amount of service
 
     def add_to_queue(self): #arrival
         self.queueSize += 1

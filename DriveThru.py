@@ -14,7 +14,7 @@ pickup = PickupWindow.PickupWindow()
 
 
 def get_arrival():
-    get_arrival.arrival_time += rvgs.exponential(2.0) #adjusting this number will adjust our inter-arrival time
+    get_arrival.arrival_time += rvgs.exponential(1.5) #adjusting this number will adjust our inter-arrival time
     return get_arrival.arrival_time # arrival time is one of those function variable things that I cant remember the name of
 
 class time_structure:
@@ -72,19 +72,24 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
                 orderComplete.eventType = Event.eventType(2)#register event as an order completion
                 orderComplete.time = t.current + order.get_service() #calculate service time and add it to curr time to get completion time
                 EL.scheduleEvent(orderComplete) #add to event list
+            else:
+                moveOrder = Event.Event()
+                moveOrder.eventType = Event.eventType(5) # register event as move order car event
+                moveOrder.time = t.current + order.get_service() # we will still calculate the service time as if we were completing
+                EL.scheduleEvent(moveOrder)#add to event list
 
-            arrival = Event.Event() #schedule next arrival
+            #schedule next arrival
+            arrival = Event.Event()
             t.arrival = get_arrival()
             arrival.time = t.arrival
             arrival.eventType = Event.eventType(1) #set this event as an type arrival
-            EL. scheduleEvent(arrival) #add arrival to event list
+            EL.scheduleEvent(arrival) #add arrival to event list
             print("arrival", t.current)
             arrivalCount += 1
 
         #process order completion
         elif event.eventType.value == 2:
             order.order_complete() #removes a car from the order queue
-            #make an order can move event here?
             payment.add_to_queue() #adds the car to the payment window
             # check if payment window has room
             if pickup.get_queue_size() < pickup.get_max():
@@ -94,11 +99,15 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
                 EL.scheduleEvent(paymentComplete) #add to event list
                 print("order complete", t.current)
                 orderCompleteCount += 1
+            else:
+                paymentMove = Event.Event()
+                paymentMove.eventType = Event.eventType(6) # register this event as a payment move event
+                paymentMove.time = t.current + payment.get_service() #add time as if we were processing a completion
+                EL.scheduleEvent(paymentMove)#add to event list
 
         #payment completion
         elif event.eventType.value == 3:
             payment.pay_complete() #remove  from payment window
-            # make a payment can move event here?
             pickup.add_to_queue() # add car to pickup queue
             pickupComplete = Event.Event()
             pickupComplete.eventType = Event.eventType(4) #register it as a pickup completion
@@ -112,6 +121,32 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
             pickup.pickup_complete() #remove car from pickup
             print("process complete", t.current)
             processCompleteCount += 1
+
+        # process move order car event, works same as order complete, just later on
+        elif event.eventType.value == 5:
+            order.order_complete() #removes a car from the order queue
+            payment.add_to_queue() #adds the car to the payment window
+            # check if payment window has room
+            if pickup.get_queue_size() < pickup.get_max():
+                paymentComplete = Event.Event()
+                paymentComplete.eventType = Event.eventType(3) #register it as a payment complete
+                paymentComplete.time = t.current + payment.get_service()
+                EL.scheduleEvent(paymentComplete) #add to event list
+                print("order complete", t.current)
+                orderCompleteCount += 1
+
+        #process move payment car event works the same as the payent completion, just later
+        elif event.eventType.value == 6:
+            payment.pay_complete() #remove  from payment window
+            pickup.add_to_queue() # add car to pickup queue
+            pickupComplete = Event.Event()
+            pickupComplete.eventType = Event.eventType(4) #register it as a pickup completion
+            pickupComplete.time = t.current + pickup.get_service()
+            EL.scheduleEvent(pickupComplete) # add to event list
+            print("payment complete", t.current)
+            paymentCompleteCount += 1
+
+
     print("totalCars:", totalCars)
     print("arrivalCount:", arrivalCount)
     print("orderCompleteCount:", orderCompleteCount)
