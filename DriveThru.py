@@ -4,7 +4,7 @@ import OrderQueue
 import PaymentWindow
 import PickupWindow
 import rvgs
-import heapq #import for heap data structure!
+import rngs
 import Event
 import EventList
 
@@ -14,7 +14,7 @@ pickup = PickupWindow.PickupWindow()
 
 
 def get_arrival():
-    get_arrival.arrival_time += rvgs.exponential(1.5) #adjusting this number will adjust our inter-arrival time
+    get_arrival.arrival_time += rvgs.exponential(.50) #adjusting this number will adjust our inter-arrival time
     return get_arrival.arrival_time # arrival time is one of those function variable things that I cant remember the name of
 
 class time_structure:
@@ -31,7 +31,6 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
     payment.set_max(payQueueSize)
     pickup.set_max(pickupQueueSize)
     STOP = iterations
-    infinity = STOP * 100 # should be a good bet that our simulation won't run this long
     EL = EventList.EventList() # create a new event list object
 
     get_arrival.arrival_time = 0 # initialize arrival time to 0
@@ -45,6 +44,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
     arrival.time = t.arrival # set the objects time to t.arrival
     arrival.eventType = Event.eventType(1) # set the enum to make the event type be an arrival
     EL.scheduleEvent(arrival) # add the arrival to the event list.
+    arrivalCount += 1
 
     # We do not need to set the completions to infinity because it is the same as the objects not existing.
 
@@ -79,13 +79,14 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
                 EL.scheduleEvent(moveOrder)#add to event list
 
             #schedule next arrival
-            arrival = Event.Event()
-            t.arrival = get_arrival()
-            arrival.time = t.arrival
-            arrival.eventType = Event.eventType(1) #set this event as an type arrival
-            EL.scheduleEvent(arrival) #add arrival to event list
-            print("arrival", t.current)
-            arrivalCount += 1
+            if t.current < STOP: # if we are still below our stop time, schedule another arrival
+                arrival = Event.Event()
+                t.arrival = get_arrival()
+                arrival.time = t.arrival
+                arrival.eventType = Event.eventType(1) #set this event as an type arrival
+                EL.scheduleEvent(arrival) #add arrival to event list
+                #print("arrival", t.current)
+                arrivalCount += 1
 
         #process order completion
         elif event.eventType.value == 2:
@@ -97,7 +98,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
                 paymentComplete.eventType = Event.eventType(3) #register it as a payment complete
                 paymentComplete.time = t.current + payment.get_service()
                 EL.scheduleEvent(paymentComplete) #add to event list
-                print("order complete", t.current)
+                #print("order complete", t.current)
                 orderCompleteCount += 1
             else:
                 paymentMove = Event.Event()
@@ -113,38 +114,47 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
             pickupComplete.eventType = Event.eventType(4) #register it as a pickup completion
             pickupComplete.time = t.current + pickup.get_service()
             EL.scheduleEvent(pickupComplete) # add to event list
-            print("payment complete", t.current)
+            #print("payment complete", t.current)
             paymentCompleteCount += 1
 
         #process pickup
         elif event.eventType.value == 4:
             pickup.pickup_complete() #remove car from pickup
-            print("process complete", t.current)
+            #print("pickup complete", t.current)
             processCompleteCount += 1
 
         # process move order car event, works same as order complete, just later on
         elif event.eventType.value == 5:
-            order.order_complete() #removes a car from the order queue
-            payment.add_to_queue() #adds the car to the payment window
-            # check if payment window has room
-            if pickup.get_queue_size() < pickup.get_max():
-                paymentComplete = Event.Event()
-                paymentComplete.eventType = Event.eventType(3) #register it as a payment complete
-                paymentComplete.time = t.current + payment.get_service()
-                EL.scheduleEvent(paymentComplete) #add to event list
-                print("order complete", t.current)
-                orderCompleteCount += 1
+            #print("move order = ", t.current)
+            if payment.get_queue_size() < payment.get_max(): #if there's room in the next queue
+                orderComplete = Event.Event()
+                orderComplete.eventType = Event.eventType(2) # register event as an order complete
+                orderComplete.time = t.current #if there is room, schedule the order completion now
+                EL.scheduleEvent(orderComplete) #add event to event list
+            # if next window is full, make another can order move event.
+            else:
+                moveOrder = Event.Event()
+                moveOrder.eventType = Event.eventType(5) # register event as move order car event
+                moveOrder.time = t.current + rvgs.geometric(0.2) # not totally sure if this is appropriate here
+                EL.scheduleEvent(moveOrder)#add to event list
 
         #process move payment car event works the same as the payent completion, just later
         elif event.eventType.value == 6:
-            payment.pay_complete() #remove  from payment window
-            pickup.add_to_queue() # add car to pickup queue
-            pickupComplete = Event.Event()
-            pickupComplete.eventType = Event.eventType(4) #register it as a pickup completion
-            pickupComplete.time = t.current + pickup.get_service()
-            EL.scheduleEvent(pickupComplete) # add to event list
-            print("payment complete", t.current)
-            paymentCompleteCount += 1
+           if pickup.get_queue_size() < pickup.get_max(): # if there's room in the next queue
+                paymentComplete = Event.Event()
+                paymentComplete.eventType = Event.eventType(3) #register as a payment completion event
+                paymentComplete.time = t.current # if there's room in the queue, schedule a payment completion now
+                EL.scheduleEvent(paymentComplete) # add event to event list
+                #if next window is full schedule another
+           else:
+                paymentMove = Event.Event()
+                paymentMove.eventType = Event.eventType(6) #register as a payment move event
+                paymentMove.time = t.current + rvgs.geometric(0.2) #not really sure if this is appropriate time to check again
+                EL.scheduleEvent(paymentMove) #add it to the event list
+
+
+
+
 
 
     print("totalCars:", totalCars)
@@ -156,7 +166,16 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
 
         #--------------------------------------------------------------------------------------------------
 def main():
-    run_sim(5,5,100) #q1 is infinite, q2, q3, stop
+    #rngs.put_seed(0) # for more randomization optimization
+    q1 = 2
+    q2 = 2
+    iterations = 100
+
+    for i in range(2, 20, 2):
+        run_sim(q1, q2, iterations) #q1 is infinite, q2, q3, stop
+        q1 += 2
+        q2 += 2
+        print(" ")
 
 if __name__ == "__main__":
     main()
