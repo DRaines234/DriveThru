@@ -9,7 +9,7 @@ import Event
 import EventList
 
 
-interarrival = 2.0
+interarrival = 1.5
 
 def get_arrival():
     get_arrival.arrival_time += rvgs.exponential(interarrival) #adjusting this number will adjust our inter-arrival time
@@ -163,13 +163,16 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
     print("orderCompleteCount:", orderCompleteCount)
     print("paymentCompleteCount:", paymentCompleteCount)
     print("processCompleteCount:", processCompleteCount)
+    print("largest order queue: ", order.getLargestSize())
+    print("largest payment queue: ", payment.getLargestSize())
+    print("largest pickup queue: ", pickup.getLargestSize())
 
 
         #--------------------------------------------------------------------------------------------------
 def main():
     #rngs.put_seed(0) # for more randomization optimization
-    q1 = 10
-    q2 = 10
+    q1 = 5
+    q2 = 5
     iterations = 500
 
     for i in range(2, 20, 2):
