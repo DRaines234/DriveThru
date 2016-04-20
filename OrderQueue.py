@@ -5,6 +5,7 @@ class OrderQueue:
     queueSize = 0
     can_move = True
     maximum = 0
+    largestAmt = 0
 
     def get_service(self):
         total_time = 0
@@ -16,6 +17,8 @@ class OrderQueue:
 
     def add_to_queue(self): #arrival
         self.queueSize += 1
+        if self.queueSize > self.largestAmt:
+            self.largestAmt = self.queueSize
 
     def get_queue_size(self):
         return self.queueSize
@@ -28,3 +31,6 @@ class OrderQueue:
 
     def order_complete(self):
         self.queueSize -= 1
+
+    def getLargestSize(self):
+        return self.largestAmt
