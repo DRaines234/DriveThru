@@ -8,10 +8,8 @@ import rngs
 import Event
 import EventList
 
-order = OrderQueue.OrderQueue()
-payment = PaymentWindow.PaymentWindow()
-pickup = PickupWindow.PickupWindow()
-interarrival = 0.4
+
+interarrival = 2.0
 
 def get_arrival():
     get_arrival.arrival_time += rvgs.exponential(interarrival) #adjusting this number will adjust our inter-arrival time
@@ -23,6 +21,9 @@ class time_structure:
         self.current = -1                # we have to keep track of the current time
 
 def run_sim(payQueueSize, pickupQueueSize, iterations):
+    order = OrderQueue.OrderQueue()
+    payment = PaymentWindow.PaymentWindow()
+    pickup = PickupWindow.PickupWindow()
     totalCars = 0
     arrivalCount = 0
     orderCompleteCount = 0
@@ -170,14 +171,12 @@ def main():
     q1 = 10
     q2 = 10
     iterations = 500
-    '''
+
     for i in range(2, 20, 2):
         run_sim(q1, q2, iterations) #q1 is infinite, q2, q3, stop
-        q1 += 2
-        #q2 += 2
         print(" ")
-    '''
-    run_sim(q1, q2, iterations)
+
+    #run_sim(q1, q2, iterations)
 
 
 
