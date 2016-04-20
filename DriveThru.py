@@ -11,10 +11,10 @@ import EventList
 order = OrderQueue.OrderQueue()
 payment = PaymentWindow.PaymentWindow()
 pickup = PickupWindow.PickupWindow()
-
+interarrival = 0.4
 
 def get_arrival():
-    get_arrival.arrival_time += rvgs.exponential(.50) #adjusting this number will adjust our inter-arrival time
+    get_arrival.arrival_time += rvgs.exponential(interarrival) #adjusting this number will adjust our inter-arrival time
     return get_arrival.arrival_time # arrival time is one of those function variable things that I cant remember the name of
 
 class time_structure:
@@ -167,15 +167,21 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
         #--------------------------------------------------------------------------------------------------
 def main():
     #rngs.put_seed(0) # for more randomization optimization
-    q1 = 2
-    q2 = 2
-    iterations = 100
-
+    q1 = 10
+    q2 = 10
+    iterations = 500
+    '''
     for i in range(2, 20, 2):
         run_sim(q1, q2, iterations) #q1 is infinite, q2, q3, stop
         q1 += 2
-        q2 += 2
+        #q2 += 2
         print(" ")
+    '''
+    run_sim(q1, q2, iterations)
+
+
+
+
 
 if __name__ == "__main__":
     main()
