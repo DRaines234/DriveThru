@@ -159,6 +159,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
                 moveOrder = Event.Event()
                 moveOrder.eventType = Event.eventType(5) # register event as move order car event
                 moveOrder.time = t.current + rvgs.geometric(0.2) # not totally sure if this is appropriate here
+                return_stats.avg_order_cant_mv_time += moveOrder.time
                 EL.scheduleEvent(moveOrder)#add to event list
 
         #process move payment car event works the same as the payent completion, just later
@@ -177,15 +178,18 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
                 paymentMove = Event.Event()
                 paymentMove.eventType = Event.eventType(6) #register as a payment move event
                 paymentMove.time = t.current + rvgs.geometric(0.2) #not really sure if this is appropriate time to check again
+                return_stats.avg_payment_cant_mv_time += paymentMove.time
                 EL.scheduleEvent(paymentMove) #add it to the event list
 
 
 
 
-    stats.processes_complete = processCompleteCount
-    stats.total_arrivals = arrivalCount
-    stats.stuck_in_order_cnt = totalWaitForPaymentQueue
-    stats.stuck_in_pay_cnt = totalWaitForPickupQueue
+    return_stats.processes_complete = processCompleteCount
+    return_stats.total_arrivals = arrivalCount
+    return_stats.stuck_in_order_cnt = totalWaitForPaymentQueue
+    return_stats.stuck_in_pay_cnt = totalWaitForPickupQueue
+    return_stats.avg_order_cant_mv_time = return_stats.avg_order_cant_mv_time / STOP
+    return_stats.avg_payment_cant_mv_time = return_stats.avg_payment_cant_mv_time / STOP
     #print(processCompleteCount)
     #print("totalCars:", totalCars)
     # print("arrivalCount:", arrivalCount)
@@ -198,7 +202,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
     # print("Number of waiting for payment Queue to open:", totalWaitForPaymentQueue)
     # print("Number of waiting for pickup Queue to open:", totalWaitForPickupQueue)
    # print(processCompleteCount/arrivalCount)
-    return stats
+    return return_stats
 
         #--------------------------------------------------------------------------------------------------
 def main():
@@ -207,7 +211,7 @@ def main():
     q2 = 2
     iterations = 500
     interarrival = 2.0
-    monte_rounds = 40
+    monte_rounds = 20
     sum_processes_complete = 0
     sum_total_arrivals = 0
     sum_stuck_in_order_cnt = 0 #in order queue waiting for payment queue to empty
@@ -226,6 +230,8 @@ def main():
         sum_stuck_in_order_cnt += stats.stuck_in_order_cnt
         sum_stuck_in_pay_cnt += stats.stuck_in_pay_cnt
         sum_percent_complete += stats.processes_complete/stats.total_arrivals
+        sum_avg_order_cant_mv_time += stats.avg_order_cant_mv_time
+        sum_avg_payment_cant_mv_time += stats.avg_order_cant_mv_time
 
 
 
@@ -234,6 +240,8 @@ def main():
     print("stuck in order count ", sum_stuck_in_order_cnt/monte_rounds)
     print("stuck in payment coutn ", sum_stuck_in_pay_cnt/monte_rounds)
     print("percent complete ", sum_percent_complete/monte_rounds)
+    print("average order window backup:", sum_avg_order_cant_mv_time / (monte_rounds*iterations))
+    print("average payment window backup: ", sum_avg_payment_cant_mv_time / (monte_rounds*iterations))
         #print(" ")
 
 
