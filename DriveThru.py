@@ -9,18 +9,28 @@ import Event
 import EventList
 
 
-interarrival = 2.0
-
-def get_arrival():
+def get_arrival(interarrival):
     get_arrival.arrival_time += rvgs.exponential(interarrival) #adjusting this number will adjust our inter-arrival time
     return get_arrival.arrival_time # arrival time is one of those function variable things that I cant remember the name of
+
+class stats:
+    def __init__(self):
+        self.processes_complete = 0
+        self.total_arrivals = 0
+        self.stuck_in_order_cnt = 0 #in order queue waiting for payment queue to empty
+        self.stuck_in_pay_cnt = 0 #in payment queue, waiting for pickup queue to empty
+        self.avg_order_cant_mv_time = 0#sum all geometric inter stuck times and divide by stop for average stuck time PER window
+        self.avg_payment_cant_mv_time = 0
+        self.total_order_q_t = 0
+        self.total_payment_q_t = 0
+        self.total_pickup_q_t = 0
 
 class time_structure:
     def __init__(self):
         self.arrival = -1                # next arrival time, we keep this here just so we have a running arrival
         self.current = -1                # we have to keep track of the current time
 
-def run_sim(payQueueSize, pickupQueueSize, iterations):
+def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
     order = OrderQueue.OrderQueue()
     payment = PaymentWindow.PaymentWindow()
     pickup = PickupWindow.PickupWindow()
@@ -41,10 +51,11 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
 
 
     t = time_structure()
+    return_stats = stats()
     t.current = 0 # set the simulation clock to 0
 
     arrival = Event.Event() # create a new event object
-    t.arrival = get_arrival() # get our first arrival time, we might get rid of this
+    t.arrival = get_arrival(interarrival) # get our first arrival time, we might get rid of this
     arrival.time = t.arrival # set the objects time to t.arrival
     arrival.eventType = Event.eventType(1) # set the enum to make the event type be an arrival
     EL.scheduleEvent(arrival) # add the arrival to the event list.
@@ -88,7 +99,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
             #schedule next arrival
             if t.current < STOP: # if we are still below our stop time, schedule another arrival
                 arrival = Event.Event()
-                t.arrival = get_arrival()
+                t.arrival = get_arrival(interarrival)
                 arrival.time = t.arrival
                 arrival.eventType = Event.eventType(1) #set this event as an type arrival
                 EL.scheduleEvent(arrival) #add arrival to event list
@@ -171,7 +182,10 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
 
 
 
-
+    stats.processes_complete = processCompleteCount
+    stats.total_arrivals = arrivalCount
+    stats.stuck_in_order_cnt = totalWaitForPaymentQueue
+    stats.stuck_in_pay_cnt = totalWaitForPickupQueue
     #print(processCompleteCount)
     #print("totalCars:", totalCars)
     # print("arrivalCount:", arrivalCount)
@@ -183,7 +197,8 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
     # print("largest pickup queue: ", pickup.getLargestSize())
     # print("Number of waiting for payment Queue to open:", totalWaitForPaymentQueue)
     # print("Number of waiting for pickup Queue to open:", totalWaitForPickupQueue)
-    print(processCompleteCount/arrivalCount)
+   # print(processCompleteCount/arrivalCount)
+    return stats
 
         #--------------------------------------------------------------------------------------------------
 def main():
@@ -191,9 +206,34 @@ def main():
     q1 = 2
     q2 = 2
     iterations = 500
+    interarrival = 2.0
+    monte_rounds = 40
+    sum_processes_complete = 0
+    sum_total_arrivals = 0
+    sum_stuck_in_order_cnt = 0 #in order queue waiting for payment queue to empty
+    sum_stuck_in_pay_cnt = 0 #in payment queue, waiting for pickup queue to empty
+    sum_avg_order_cant_mv_time = 0#sum all geometric inter stuck times and divide by stop for average stuck time PER window
+    sum_avg_payment_cant_mv_time = 0
+    sum_total_order_q_t = 0
+    sum_total_payment_q_t = 0
+    sum_total_pickup_q_t = 0
+    sum_percent_complete = 0
 
-    for i in range(1, 40):
-        run_sim(q1, q1, iterations) #q1 is infinite, q2, q3, stop
+    for i in range(1, monte_rounds):
+        stats = run_sim(q1, q1, iterations, interarrival) #q1 is infinite, q2, q3, stop
+        sum_total_arrivals += stats.total_arrivals
+        sum_processes_complete += stats.processes_complete
+        sum_stuck_in_order_cnt += stats.stuck_in_order_cnt
+        sum_stuck_in_pay_cnt += stats.stuck_in_pay_cnt
+        sum_percent_complete += stats.processes_complete/stats.total_arrivals
+
+
+
+    print("total arrivals" , sum_total_arrivals/monte_rounds)
+    print("total complete", sum_processes_complete/monte_rounds)
+    print("stuck in order count ", sum_stuck_in_order_cnt/monte_rounds)
+    print("stuck in payment coutn ", sum_stuck_in_pay_cnt/monte_rounds)
+    print("percent complete ", sum_percent_complete/monte_rounds)
         #print(" ")
 
 
