@@ -9,7 +9,7 @@ import Event
 import EventList
 
 
-interarrival = 1.5
+interarrival = 2.0
 
 def get_arrival():
     get_arrival.arrival_time += rvgs.exponential(interarrival) #adjusting this number will adjust our inter-arrival time
@@ -29,6 +29,9 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
     orderCompleteCount = 0
     paymentCompleteCount = 0
     processCompleteCount = 0
+    totalWaitForPaymentQueue = 0
+    totalWaitForPickupQueue = 0
+
     payment.set_max(payQueueSize)
     pickup.set_max(pickupQueueSize)
     STOP = iterations
@@ -53,7 +56,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
 
     #currently without any intake from data
 
-    while(t.arrival < STOP) or (order.get_queue_size() + payment.get_queue_size() + pickup.get_queue_size()) > 0: # keep running the simulation until we reach our stop time
+    while(t.arrival < STOP): #or (order.get_queue_size() + payment.get_queue_size() + pickup.get_queue_size()) > 0: # keep running the simulation until we reach our stop time
         event = EL.getNextEvent()
         nextTime = event.time # BAM! get our event from the heap in the event list! and get its time element
 
@@ -74,6 +77,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
                 orderComplete.time = t.current + order.get_service() #calculate service time and add it to curr time to get completion time
                 EL.scheduleEvent(orderComplete) #add to event list
                 order.order_complete() #removes a car from the order queue
+                orderCompleteCount += 1
                 payment.add_to_queue() #adds the car to the payment window
             else:
                 moveOrder = Event.Event()
@@ -100,9 +104,10 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
                 paymentComplete.time = t.current + payment.get_service()
                 EL.scheduleEvent(paymentComplete) #add to event list
                 payment.pay_complete() #remove  from payment window
+                paymentCompleteCount += 1
                 pickup.add_to_queue() # add car to pickup queue
                 #print("order complete", t.current)
-                orderCompleteCount += 1
+
             else:
                 paymentMove = Event.Event()
                 paymentMove.eventType = Event.eventType(6) # register this event as a payment move event
@@ -111,21 +116,24 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
 
         #payment completion
         elif event.eventType.value == 3:
+
             pickupComplete = Event.Event()
             pickupComplete.eventType = Event.eventType(4) #register it as a pickup completion
             pickupComplete.time = t.current + pickup.get_service()
             EL.scheduleEvent(pickupComplete) # add to event list
             #print("payment complete", t.current)
-            paymentCompleteCount += 1
+
 
         #process pickup
         elif event.eventType.value == 4:
+
             pickup.pickup_complete() #remove car from pickup
             #print("pickup complete", t.current)
             processCompleteCount += 1
 
         # process move order car event, works same as order complete, just later on
         elif event.eventType.value == 5:
+            totalWaitForPaymentQueue += 1
             #print("move order = ", t.current)
             if payment.get_queue_size() < payment.get_max(): #if there's room in the next queue
                 orderComplete = Event.Event()
@@ -133,6 +141,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
                 orderComplete.time = t.current #if there is room, schedule the order completion now
                 EL.scheduleEvent(orderComplete) #add event to event list
                 order.order_complete() #removes a car from the order queue
+                orderCompleteCount += 1
                 payment.add_to_queue() #adds the car to the payment window
             # if next window is full, make another can order move event.
             else:
@@ -143,15 +152,17 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
 
         #process move payment car event works the same as the payent completion, just later
         elif event.eventType.value == 6:
-           if pickup.get_queue_size() < pickup.get_max(): # if there's room in the next queue
+            totalWaitForPickupQueue += 1
+            if pickup.get_queue_size() < pickup.get_max(): # if there's room in the next queue
                 paymentComplete = Event.Event()
                 paymentComplete.eventType = Event.eventType(3) #register as a payment completion event
                 paymentComplete.time = t.current # if there's room in the queue, schedule a payment completion now
                 EL.scheduleEvent(paymentComplete) # add event to event list
                 payment.pay_complete() #remove  from payment window
+                paymentCompleteCount += 1
                 pickup.add_to_queue() # add car to pickup queue
                 #if next window is full schedule another
-           else:
+            else:
                 paymentMove = Event.Event()
                 paymentMove.eventType = Event.eventType(6) #register as a payment move event
                 paymentMove.time = t.current + rvgs.geometric(0.2) #not really sure if this is appropriate time to check again
@@ -161,27 +172,31 @@ def run_sim(payQueueSize, pickupQueueSize, iterations):
 
 
 
-
-    print("totalCars:", totalCars)
-    print("arrivalCount:", arrivalCount)
-    print("orderCompleteCount:", orderCompleteCount)
-    print("paymentCompleteCount:", paymentCompleteCount)
-    print("processCompleteCount:", processCompleteCount)
-    print("largest order queue: ", order.getLargestSize())
-    print("largest payment queue: ", payment.getLargestSize())
-    print("largest pickup queue: ", pickup.getLargestSize())
-
+    #print(processCompleteCount)
+    #print("totalCars:", totalCars)
+    # print("arrivalCount:", arrivalCount)
+    # print("orderCompleteCount:", orderCompleteCount)
+    # print("paymentCompleteCount:", paymentCompleteCount)
+    # print("processCompleteCount:", processCompleteCount)
+    # print("largest order queue: ", order.getLargestSize())
+    # print("largest payment queue: ", payment.getLargestSize())
+    # print("largest pickup queue: ", pickup.getLargestSize())
+    # print("Number of waiting for payment Queue to open:", totalWaitForPaymentQueue)
+    # print("Number of waiting for pickup Queue to open:", totalWaitForPickupQueue)
+    print(processCompleteCount/arrivalCount)
 
         #--------------------------------------------------------------------------------------------------
 def main():
     #rngs.put_seed(0) # for more randomization optimization
-    q1 = 5
-    q2 = 5
+    q1 = 2
+    q2 = 2
     iterations = 500
 
-    for i in range(2, 20, 2):
-        run_sim(q1, q2, iterations) #q1 is infinite, q2, q3, stop
-        print(" ")
+    for i in range(1, 40):
+        run_sim(q1, q1, iterations) #q1 is infinite, q2, q3, stop
+        #print(" ")
+
+
 
     #run_sim(q1, q2, iterations)
 
