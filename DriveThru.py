@@ -225,14 +225,17 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
     # print("Number of waiting for payment Queue to open:", totalWaitForPaymentQueue)
     # print("Number of waiting for pickup Queue to open:", totalWaitForPickupQueue)
     # print(processCompleteCount/arrivalCount)
-    #print(t.current)
+    print("avg order takes ", return_stats.order_time)
+    print("avg payment takes ", return_stats.payment_time)
+    print("avg pickup takes ", return_stats.pickup_time)
+    print("timem = ",t.current)
     return return_stats
 
         #--------------------------------------------------------------------------------------------------
 def main():
     #rngs.put_seed(0) # for more randomization optimization
-    q1 = 2
-    q2 = 2
+    q1 = 5
+    q2 = 5
     iterations = 60
     interarrival = 1.0
     monte_rounds = 500
@@ -265,13 +268,13 @@ def main():
     print("total arrivals" , sum_total_arrivals/monte_rounds)
     print("total complete", sum_processes_complete/monte_rounds)
     print("stuck in order count ", sum_stuck_in_order_cnt/monte_rounds)
-    print("stuck in payment coutn ", sum_stuck_in_pay_cnt/monte_rounds)
+    print("stuck in payment count ", sum_stuck_in_pay_cnt/monte_rounds)
     print("percent complete ", sum_percent_complete/monte_rounds)
     print("average order window backup:", sum_avg_order_cant_mv_time / monte_rounds)
     print("average payment window backup: ", sum_avg_payment_cant_mv_time / monte_rounds)
-    print("average time per car in in order queue: ", sum_total_order_q_t)
-    print("average time per car in payment queue: ", sum_total_payment_q_t)
-    print("average time per car in pickup queue: ", sum_total_pickup_q_t)
+    print("average time per car in in order queue: ", sum_total_order_q_t / monte_rounds)
+    print("average time per car in payment queue: ", sum_total_payment_q_t / monte_rounds)
+    print("average time per car in pickup queue: ", sum_total_pickup_q_t / monte_rounds)
     print("total time in system: ", (sum_total_order_q_t / monte_rounds) + (sum_total_order_q_t / monte_rounds) + (sum_total_pickup_q_t / monte_rounds))
         #print(" ")
 
