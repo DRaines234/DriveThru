@@ -206,42 +206,45 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
 
         #--------------------------------------------------------------------------------------------------
 def main():
-    #rngs.put_seed(0) # for more randomization optimization
-    q1 = 2
-    q2 = 2
-    iterations = 500
-    interarrival = 2.0
-    monte_rounds = 20
-    sum_processes_complete = 0
-    sum_total_arrivals = 0
-    sum_stuck_in_order_cnt = 0 #in order queue waiting for payment queue to empty
-    sum_stuck_in_pay_cnt = 0 #in payment queue, waiting for pickup queue to empty
-    sum_avg_order_cant_mv_time = 0#sum all geometric inter stuck times and divide by stop for average stuck time PER window
-    sum_avg_payment_cant_mv_time = 0
-    sum_total_order_q_t = 0
-    sum_total_payment_q_t = 0
-    sum_total_pickup_q_t = 0
-    sum_percent_complete = 0
-
-    for i in range(1, monte_rounds):
-        stats = run_sim(q1, q1, iterations, interarrival) #q1 is infinite, q2, q3, stop
-        sum_total_arrivals += stats.total_arrivals
-        sum_processes_complete += stats.processes_complete
-        sum_stuck_in_order_cnt += stats.stuck_in_order_cnt
-        sum_stuck_in_pay_cnt += stats.stuck_in_pay_cnt
-        sum_percent_complete += stats.processes_complete/stats.total_arrivals
-        sum_avg_order_cant_mv_time += stats.avg_order_cant_mv_time
-        sum_avg_payment_cant_mv_time += stats.avg_order_cant_mv_time
+    for x in range (1, 40):
+        #rngs.put_seed(0) # for more randomization optimization
+        q1 = 2
+        q2 = 2
+        iterations = 60
+        interarrival = .5
+        monte_rounds = 1000
+        sum_processes_complete = 0
+        sum_total_arrivals = 0
+        sum_stuck_in_order_cnt = 0 #in order queue waiting for payment queue to empty
+        sum_stuck_in_pay_cnt = 0 #in payment queue, waiting for pickup queue to empty
+        sum_avg_order_cant_mv_time = 0#sum all geometric inter stuck times and divide by stop for average stuck time PER window
+        sum_avg_payment_cant_mv_time = 0
+        sum_total_order_q_t = 0
+        sum_total_payment_q_t = 0
+        sum_total_pickup_q_t = 0
+        sum_percent_complete = 0
 
 
 
-    print("total arrivals" , sum_total_arrivals/monte_rounds)
-    print("total complete", sum_processes_complete/monte_rounds)
-    print("stuck in order count ", sum_stuck_in_order_cnt/monte_rounds)
-    print("stuck in payment coutn ", sum_stuck_in_pay_cnt/monte_rounds)
-    print("percent complete ", sum_percent_complete/monte_rounds)
-    print("average order window backup:", sum_avg_order_cant_mv_time / (monte_rounds*iterations))
-    print("average payment window backup: ", sum_avg_payment_cant_mv_time / (monte_rounds*iterations))
+        for i in range(1, monte_rounds):
+            stats = run_sim(x, 2, iterations, interarrival) #q1 is infinite, q2, q3, stop
+            sum_total_arrivals += stats.total_arrivals
+            sum_processes_complete += stats.processes_complete
+            sum_stuck_in_order_cnt += stats.stuck_in_order_cnt
+            sum_stuck_in_pay_cnt += stats.stuck_in_pay_cnt
+            sum_percent_complete += stats.processes_complete/stats.total_arrivals
+            sum_avg_order_cant_mv_time += stats.avg_order_cant_mv_time
+            sum_avg_payment_cant_mv_time += stats.avg_order_cant_mv_time
+        print(sum_processes_complete/monte_rounds)
+
+
+        # print("total arrivals" , sum_total_arrivals/monte_rounds)
+        # print("total complete", sum_processes_complete/monte_rounds)
+        # print("stuck in order count ", sum_stuck_in_order_cnt/monte_rounds)
+        # print("stuck in payment coutn ", sum_stuck_in_pay_cnt/monte_rounds)
+        # print("percent complete ", sum_percent_complete/monte_rounds)
+        # print("average order window backup:", sum_avg_order_cant_mv_time / (monte_rounds*iterations))
+        # print("average payment window backup: ", sum_avg_payment_cant_mv_time / (monte_rounds*iterations))
         #print(" ")
 
 
