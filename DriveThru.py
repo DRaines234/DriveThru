@@ -19,11 +19,14 @@ class stats:
         self.total_arrivals = 0
         self.stuck_in_order_cnt = 0 #in order queue waiting for payment queue to empty
         self.stuck_in_pay_cnt = 0 #in payment queue, waiting for pickup queue to empty
-        self.avg_order_cant_mv_time = 0#sum all geometric inter stuck times and divide by stop for average stuck time PER window
+        self.avg_order_cant_mv_time = 0#sum all inter stuck times and divide by stop for average stuck time PER window
         self.avg_payment_cant_mv_time = 0
         self.total_order_q_t = 0
         self.total_payment_q_t = 0
         self.total_pickup_q_t = 0
+        self.order_time = 0 #time spent at order window
+        self.payment_time = 0 # time spent at payment window
+        self.pickup_time = 0 # time spent at pickup window
 
 class time_structure:
     def __init__(self):
@@ -67,7 +70,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
 
     #currently without any intake from data
 
-    while(t.arrival < STOP): #or (order.get_queue_size() + payment.get_queue_size() + pickup.get_queue_size()) > 0: # keep running the simulation until we reach our stop time
+    while(t.arrival < STOP or (order.get_queue_size() + payment.get_queue_size() + pickup.get_queue_size()) > 0): # keep running the simulation until we reach our stop time
         event = EL.getNextEvent()
         nextTime = event.time # BAM! get our event from the heap in the event list! and get its time element
 
@@ -85,16 +88,20 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
             if payment.get_queue_size() < payment.get_max():
                 orderComplete = Event.Event()
                 orderComplete.eventType = Event.eventType(2)#register event as an order completion
-                orderComplete.time = t.current + order.get_service() #calculate service time and add it to curr time to get completion time
+                service = order.get_service()
+                orderComplete.time = t.current + service #calculate service time and add it to curr time to get completion time
                 EL.scheduleEvent(orderComplete) #add to event list
                 order.order_complete() #removes a car from the order queue
                 orderCompleteCount += 1
                 payment.add_to_queue() #adds the car to the payment window
+                return_stats.order_time += service # time leaving the order window
             else:
                 moveOrder = Event.Event()
                 moveOrder.eventType = Event.eventType(5) # register event as move order car event
-                moveOrder.time = t.current + order.get_service() # we will still calculate the service time as if we were completing
+                service = order.get_service()
+                moveOrder.time = t.current + service # we will still calculate the service time as if we were completing
                 EL.scheduleEvent(moveOrder)#add to event list
+                return_stats.order_time += service #scheduling a move order but we are still in the order queue
 
             #schedule next arrival
             if t.current < STOP: # if we are still below our stop time, schedule another arrival
@@ -112,26 +119,32 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
             if pickup.get_queue_size() < pickup.get_max():
                 paymentComplete = Event.Event()
                 paymentComplete.eventType = Event.eventType(3) #register it as a payment complete
-                paymentComplete.time = t.current + payment.get_service()
+                service = payment.get_service()
+                paymentComplete.time = t.current + service
                 EL.scheduleEvent(paymentComplete) #add to event list
                 payment.pay_complete() #remove  from payment window
                 paymentCompleteCount += 1
                 pickup.add_to_queue() # add car to pickup queue
+                return_stats.pickup_time += service # add service time to pickup total time
                 #print("order complete", t.current)
 
             else:
                 paymentMove = Event.Event()
                 paymentMove.eventType = Event.eventType(6) # register this event as a payment move event
-                paymentMove.time = t.current + payment.get_service() #add time as if we were processing a completion
+                service = payment.get_service()
+                paymentMove.time = t.current + service #add time as if we were processing a completion
                 EL.scheduleEvent(paymentMove)#add to event list
+                return_stats.payment_time == service # add the service time for the scheduled wait because we are still at the window
 
         #payment completion
         elif event.eventType.value == 3:
 
             pickupComplete = Event.Event()
             pickupComplete.eventType = Event.eventType(4) #register it as a pickup completion
-            pickupComplete.time = t.current + pickup.get_service()
+            service = payment.get_service()
+            pickupComplete.time = t.current + service
             EL.scheduleEvent(pickupComplete) # add to event list
+            return_stats.pickup_time += service #add to total time for pickup
             #print("payment complete", t.current)
 
 
@@ -141,6 +154,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
             pickup.pickup_complete() #remove car from pickup
             #print("pickup complete", t.current)
             processCompleteCount += 1
+            #no time needed here
 
         # process move order car event, works same as order complete, just later on
         elif event.eventType.value == 5:
@@ -154,13 +168,16 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
                 order.order_complete() #removes a car from the order queue
                 orderCompleteCount += 1
                 payment.add_to_queue() #adds the car to the payment window
+                #we already added the time for this event when we created it. The completion here gets scheduled for right now
             # if next window is full, make another can order move event.
             else:
                 moveOrder = Event.Event()
                 moveOrder.eventType = Event.eventType(5) # register event as move order car event
-                moveOrder.time = t.current + rvgs.geometric(0.2) # not totally sure if this is appropriate here
-                return_stats.avg_order_cant_mv_time += moveOrder.time
+                delay = rvgs.random()
+                moveOrder.time = t.current + delay # not totally sure if this is appropriate here
+                return_stats.avg_order_cant_mv_time += service #add just the reschedule time
                 EL.scheduleEvent(moveOrder)#add to event list
+                return_stats.order_time +=  delay #we are stuck in the orde queue so add this time to its time
 
         #process move payment car event works the same as the payent completion, just later
         elif event.eventType.value == 6:
@@ -173,13 +190,16 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
                 payment.pay_complete() #remove  from payment window
                 paymentCompleteCount += 1
                 pickup.add_to_queue() # add car to pickup queue
+                #we already added the time for this event when scheduling it.
                 #if next window is full schedule another
             else:
                 paymentMove = Event.Event()
                 paymentMove.eventType = Event.eventType(6) #register as a payment move event
-                paymentMove.time = t.current + rvgs.geometric(0.2) #not really sure if this is appropriate time to check again
-                return_stats.avg_payment_cant_mv_time += paymentMove.time
+                service = rvgs.random()
+                paymentMove.time = t.current + service #not really sure if this is appropriate time to check again
+                return_stats.avg_payment_cant_mv_time += service #add just the reschedule time
                 EL.scheduleEvent(paymentMove) #add it to the event list
+                return_stats.payment_time += service #we are still stuckin in the service time for this
 
 
 
@@ -188,8 +208,11 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
     return_stats.total_arrivals = arrivalCount
     return_stats.stuck_in_order_cnt = totalWaitForPaymentQueue
     return_stats.stuck_in_pay_cnt = totalWaitForPickupQueue
-    return_stats.avg_order_cant_mv_time = return_stats.avg_order_cant_mv_time / STOP
-    return_stats.avg_payment_cant_mv_time = return_stats.avg_payment_cant_mv_time / STOP
+    return_stats.avg_order_cant_mv_time = (return_stats.avg_order_cant_mv_time / STOP) / orderCompleteCount
+    return_stats.avg_payment_cant_mv_time = (return_stats.avg_payment_cant_mv_time / STOP) / paymentCompleteCount
+    return_stats.order_time = return_stats.order_time / STOP / totalCars #gets average time per car
+    return_stats.payment_time = return_stats.payment_time / STOP / totalCars #gets average time per car
+    return_stats.pickup_time = return_stats.pickup_time / STOP / totalCars #gets average time per car
     #print(processCompleteCount)
     #print("totalCars:", totalCars)
     # print("arrivalCount:", arrivalCount)
@@ -201,53 +224,55 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
     # print("largest pickup queue: ", pickup.getLargestSize())
     # print("Number of waiting for payment Queue to open:", totalWaitForPaymentQueue)
     # print("Number of waiting for pickup Queue to open:", totalWaitForPickupQueue)
-   # print(processCompleteCount/arrivalCount)
+    # print(processCompleteCount/arrivalCount)
+    #print(t.current)
     return return_stats
 
         #--------------------------------------------------------------------------------------------------
 def main():
-    q1 = 10
-    q2 = 10
+    #rngs.put_seed(0) # for more randomization optimization
+    q1 = 2
+    q2 = 2
     iterations = 60
-    interarrival = .4
-    monte_rounds = 1000
-    for x in range (1, 21):
+    interarrival = 1.0
+    monte_rounds = 500
+    sum_processes_complete = 0
+    sum_total_arrivals = 0
+    sum_stuck_in_order_cnt = 0 #in order queue waiting for payment queue to empty
+    sum_stuck_in_pay_cnt = 0 #in payment queue, waiting for pickup queue to empty
+    sum_avg_order_cant_mv_time = 0#sum all geometric inter stuck times and divide by stop for average stuck time PER window
+    sum_avg_payment_cant_mv_time = 0
+    sum_total_order_q_t = 0
+    sum_total_payment_q_t = 0
+    sum_total_pickup_q_t = 0
+    sum_percent_complete = 0
 
-        #rngs.put_seed(0) # for more randomization optimization
-
-        sum_processes_complete = 0
-        sum_total_arrivals = 0
-        sum_stuck_in_order_cnt = 0 #in order queue waiting for payment queue to empty
-        sum_stuck_in_pay_cnt = 0 #in payment queue, waiting for pickup queue to empty
-        sum_avg_order_cant_mv_time = 0#sum all geometric inter stuck times and divide by stop for average stuck time PER window
-        sum_avg_payment_cant_mv_time = 0
-        sum_total_order_q_t = 0
-        sum_total_payment_q_t = 0
-        sum_total_pickup_q_t = 0
-        sum_percent_complete = 0
-
-
-
-        for i in range(1, monte_rounds):
-            stats = run_sim(q1, q2, iterations, interarrival) #q1 is infinite, q2, q3, stop
-            sum_total_arrivals += stats.total_arrivals
-            sum_processes_complete += stats.processes_complete
-            sum_stuck_in_order_cnt += stats.stuck_in_order_cnt
-            sum_stuck_in_pay_cnt += stats.stuck_in_pay_cnt
-            sum_percent_complete += stats.processes_complete/stats.total_arrivals
-            sum_avg_order_cant_mv_time += stats.avg_order_cant_mv_time
-            sum_avg_payment_cant_mv_time += stats.avg_order_cant_mv_time
-        print(sum_processes_complete/monte_rounds)
-        interarrival += .1
+    for i in range(1, monte_rounds):
+        stats = run_sim(q1, q2, iterations, interarrival) #q1 is infinite, q2, q3, stop
+        sum_total_arrivals += stats.total_arrivals
+        sum_processes_complete += stats.processes_complete
+        sum_stuck_in_order_cnt += stats.stuck_in_order_cnt
+        sum_stuck_in_pay_cnt += stats.stuck_in_pay_cnt
+        sum_percent_complete += stats.processes_complete/stats.total_arrivals
+        sum_avg_order_cant_mv_time += stats.avg_order_cant_mv_time
+        sum_avg_payment_cant_mv_time += stats.avg_payment_cant_mv_time
+        sum_total_order_q_t += stats.order_time
+        sum_total_payment_q_t += stats.payment_time
+        sum_total_pickup_q_t += stats.pickup_time
 
 
-        # print("total arrivals" , sum_total_arrivals/monte_rounds)
-        # print("total complete", sum_processes_complete/monte_rounds)
-        # print("stuck in order count ", sum_stuck_in_order_cnt/monte_rounds)
-        # print("stuck in payment coutn ", sum_stuck_in_pay_cnt/monte_rounds)
-        # print("percent complete ", sum_percent_complete/monte_rounds)
-        # print("average order window backup:", sum_avg_order_cant_mv_time / (monte_rounds*iterations))
-        # print("average payment window backup: ", sum_avg_payment_cant_mv_time / (monte_rounds*iterations))
+
+    print("total arrivals" , sum_total_arrivals/monte_rounds)
+    print("total complete", sum_processes_complete/monte_rounds)
+    print("stuck in order count ", sum_stuck_in_order_cnt/monte_rounds)
+    print("stuck in payment coutn ", sum_stuck_in_pay_cnt/monte_rounds)
+    print("percent complete ", sum_percent_complete/monte_rounds)
+    print("average order window backup:", sum_avg_order_cant_mv_time / monte_rounds)
+    print("average payment window backup: ", sum_avg_payment_cant_mv_time / monte_rounds)
+    print("average time per car in in order queue: ", sum_total_order_q_t)
+    print("average time per car in payment queue: ", sum_total_payment_q_t)
+    print("average time per car in pickup queue: ", sum_total_pickup_q_t)
+    print("total time in system: ", (sum_total_order_q_t / monte_rounds) + (sum_total_order_q_t / monte_rounds) + (sum_total_pickup_q_t / monte_rounds))
         #print(" ")
 
 

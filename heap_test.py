@@ -3,6 +3,8 @@ __author__ = 'Derek'
 
 import heapq
 from enum import Enum
+import rvgs
+
 heap = []
 heapq.heapify(heap)
 
@@ -39,3 +41,6 @@ heapq.heappush(heap, event3)
 print(heapq.heappop(heap).eventType.name) # .name gives string name of enum, .value gets the number of the enum
 print(heapq.heappop(heap).eventType)
 print(heapq.heappop(heap).eventType)
+
+for i in range(0,10):
+    print(rvgs.geometric(0.1))
