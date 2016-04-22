@@ -208,11 +208,11 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
     return_stats.total_arrivals = arrivalCount
     return_stats.stuck_in_order_cnt = totalWaitForPaymentQueue
     return_stats.stuck_in_pay_cnt = totalWaitForPickupQueue
-    return_stats.avg_order_cant_mv_time = (return_stats.avg_order_cant_mv_time / STOP) / orderCompleteCount
-    return_stats.avg_payment_cant_mv_time = (return_stats.avg_payment_cant_mv_time / STOP) / paymentCompleteCount
-    return_stats.order_time = return_stats.order_time / STOP / totalCars #gets average time per car
-    return_stats.payment_time = return_stats.payment_time / STOP / totalCars #gets average time per car
-    return_stats.pickup_time = return_stats.pickup_time / STOP / totalCars #gets average time per car
+    return_stats.avg_order_cant_mv_time = (return_stats.avg_order_cant_mv_time / t.current) / orderCompleteCount
+    return_stats.avg_payment_cant_mv_time = (return_stats.avg_payment_cant_mv_time / t.current) / paymentCompleteCount
+    return_stats.order_time = return_stats.order_time / t.current / totalCars #gets average time per car
+    return_stats.payment_time = return_stats.payment_time / t.current / totalCars #gets average time per car
+    return_stats.pickup_time = return_stats.pickup_time / t.current / totalCars #gets average time per car
     #print(processCompleteCount)
     #print("totalCars:", totalCars)
     # print("arrivalCount:", arrivalCount)

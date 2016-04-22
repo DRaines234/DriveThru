@@ -43,4 +43,4 @@ print(heapq.heappop(heap).eventType)
 print(heapq.heappop(heap).eventType)
 
 for i in range(0,10):
-    print(rvgs.geometric(0.1))
+    print(rvgs.exponential(2) * 2)
