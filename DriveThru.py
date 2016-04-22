@@ -206,13 +206,15 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
 
         #--------------------------------------------------------------------------------------------------
 def main():
-    for x in range (1, 40):
+    q1 = 10
+    q2 = 10
+    iterations = 60
+    interarrival = .4
+    monte_rounds = 1000
+    for x in range (1, 21):
+
         #rngs.put_seed(0) # for more randomization optimization
-        q1 = 2
-        q2 = 2
-        iterations = 60
-        interarrival = .5
-        monte_rounds = 1000
+
         sum_processes_complete = 0
         sum_total_arrivals = 0
         sum_stuck_in_order_cnt = 0 #in order queue waiting for payment queue to empty
@@ -227,7 +229,7 @@ def main():
 
 
         for i in range(1, monte_rounds):
-            stats = run_sim(x, 2, iterations, interarrival) #q1 is infinite, q2, q3, stop
+            stats = run_sim(q1, q2, iterations, interarrival) #q1 is infinite, q2, q3, stop
             sum_total_arrivals += stats.total_arrivals
             sum_processes_complete += stats.processes_complete
             sum_stuck_in_order_cnt += stats.stuck_in_order_cnt
@@ -236,6 +238,7 @@ def main():
             sum_avg_order_cant_mv_time += stats.avg_order_cant_mv_time
             sum_avg_payment_cant_mv_time += stats.avg_order_cant_mv_time
         print(sum_processes_complete/monte_rounds)
+        interarrival += .1
 
 
         # print("total arrivals" , sum_total_arrivals/monte_rounds)
