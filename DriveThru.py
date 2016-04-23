@@ -233,8 +233,8 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
         #--------------------------------------------------------------------------------------------------
 def main():
     #rngs.put_seed(0) # for more randomization optimization
-    q1 = 5
-    q2 = 5
+    q1 = 2
+    q2 = 10
     iterations = 60
     interarrival = 1.0
     monte_rounds = 500
@@ -248,7 +248,7 @@ def main():
     sum_total_payment_q_t = 0
     sum_total_pickup_q_t = 0
     sum_percent_complete = 0
-
+    '''
     for i in range(1, monte_rounds):
         stats = run_sim(q1, q2, iterations, interarrival) #q1 is infinite, q2, q3, stop
         sum_total_arrivals += stats.total_arrivals
@@ -280,6 +280,18 @@ def main():
 
 
     #run_sim(q1, q2, iterations)
+    '''
+
+    for i in range(0,9):
+        stats = run_sim(q1,q2,iterations, interarrival)
+        print("payment window size = ", q1)
+        print("pickup window size = ", q2)
+        print("average time stuck after order is complete = ", stats.avg_order_cant_mv_time)
+        print("average time stuck after payment is complete = ", stats.avg_payment_cant_mv_time)
+        print("average total time in drive thru = ", stats.order_time + stats.payment_time + stats.pickup_time)
+        print(" ")
+        q1 += 1
+        q2 -= 1
 
 
 
