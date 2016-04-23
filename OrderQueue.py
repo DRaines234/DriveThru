@@ -11,7 +11,7 @@ class OrderQueue:
         total_time = 0
         num_items = int(rvgs.uniform(1,6))
         for i in range(0, num_items):
-            total_time = total_time + rvgs.geometric(.02)
+            total_time = total_time + rvgs.exponential(1.5) #mostly fast with a few larger for people that can't find what they want on the menu
 
         return total_time
 

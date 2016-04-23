@@ -125,7 +125,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
                 payment.pay_complete() #remove  from payment window
                 paymentCompleteCount += 1
                 pickup.add_to_queue() # add car to pickup queue
-                return_stats.pickup_time += service # add service time to pickup total time
+                return_stats.payment_time += service # add service time to payment total time
                 #print("order complete", t.current)
 
             else:
@@ -134,14 +134,14 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
                 service = payment.get_service()
                 paymentMove.time = t.current + service #add time as if we were processing a completion
                 EL.scheduleEvent(paymentMove)#add to event list
-                return_stats.payment_time == service # add the service time for the scheduled wait because we are still at the window
+                return_stats.payment_time += service # add the service time for the scheduled wait because we are still at the window
 
         #payment completion
         elif event.eventType.value == 3:
 
             pickupComplete = Event.Event()
             pickupComplete.eventType = Event.eventType(4) #register it as a pickup completion
-            service = payment.get_service()
+            service = pickup.get_service()
             pickupComplete.time = t.current + service
             EL.scheduleEvent(pickupComplete) # add to event list
             return_stats.pickup_time += service #add to total time for pickup
@@ -195,14 +195,13 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
             else:
                 paymentMove = Event.Event()
                 paymentMove.eventType = Event.eventType(6) #register as a payment move event
-                service = rvgs.random()
+                delay = rvgs.random()
                 paymentMove.time = t.current + service #not really sure if this is appropriate time to check again
                 return_stats.avg_payment_cant_mv_time += service #add just the reschedule time
                 EL.scheduleEvent(paymentMove) #add it to the event list
-                return_stats.payment_time += service #we are still stuckin in the service time for this
+                return_stats.payment_time += delay #we are still stuckin in the service time for this
 
-
-
+    #print("total non avg'd payment time = ", return_stats.payment_time)
 
     return_stats.processes_complete = processCompleteCount
     return_stats.total_arrivals = arrivalCount
@@ -210,14 +209,14 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
     return_stats.stuck_in_pay_cnt = totalWaitForPickupQueue
     return_stats.avg_order_cant_mv_time = (return_stats.avg_order_cant_mv_time / t.current) / orderCompleteCount
     return_stats.avg_payment_cant_mv_time = (return_stats.avg_payment_cant_mv_time / t.current) / paymentCompleteCount
-    return_stats.order_time = return_stats.order_time / t.current / totalCars #gets average time per car
-    return_stats.payment_time = return_stats.payment_time / t.current / totalCars #gets average time per car
-    return_stats.pickup_time = return_stats.pickup_time / t.current / totalCars #gets average time per car
+    return_stats.order_time = return_stats.order_time / orderCompleteCount# / totalCars #gets average time per car
+    return_stats.payment_time = return_stats.payment_time / paymentCompleteCount# / totalCars #gets average time per car
+    return_stats.pickup_time = return_stats.pickup_time / processCompleteCount# / totalCars #gets average time per car
     #print(processCompleteCount)
     #print("totalCars:", totalCars)
     # print("arrivalCount:", arrivalCount)
     # print("orderCompleteCount:", orderCompleteCount)
-    # print("paymentCompleteCount:", paymentCompleteCount)
+    #print("paymentCompleteCount:", paymentCompleteCount)
     # print("processCompleteCount:", processCompleteCount)
     # print("largest order queue: ", order.getLargestSize())
     # print("largest payment queue: ", payment.getLargestSize())
@@ -225,10 +224,10 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
     # print("Number of waiting for payment Queue to open:", totalWaitForPaymentQueue)
     # print("Number of waiting for pickup Queue to open:", totalWaitForPickupQueue)
     # print(processCompleteCount/arrivalCount)
-    print("avg order takes ", return_stats.order_time)
-    print("avg payment takes ", return_stats.payment_time)
-    print("avg pickup takes ", return_stats.pickup_time)
-    print("timem = ",t.current)
+    #print("avg order takes ", return_stats.order_time)
+    #print("avg payment takes ", return_stats.payment_time)
+    #print("avg pickup takes ", return_stats.pickup_time)
+    #print("time = ",t.current)
     return return_stats
 
         #--------------------------------------------------------------------------------------------------

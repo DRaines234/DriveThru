@@ -42,5 +42,32 @@ print(heapq.heappop(heap).eventType.name) # .name gives string name of enum, .va
 print(heapq.heappop(heap).eventType)
 print(heapq.heappop(heap).eventType)
 
-for i in range(0,10):
-    print(rvgs.exponential(2) * 2)
+#Next set of things is to mess with ranges of the different distributions
+total_time = 0
+num_items = int(rvgs.uniform(1,6))
+
+min = 999999999999999
+max = 0
+for j in range(0,1000):
+    total_time = 0
+    for i in range(0, num_items):
+        num = rvgs.exponential(1.5)
+        total_time += rvgs.exponential(1.5)
+    if total_time > max:
+        max = total_time
+    if total_time < min:
+        min = total_time
+print("max = ", max)
+print("min = ", min)
+
+min = 999999999
+max = 0
+for k in range(0,1000):
+    num = rvgs.exponential(3)
+    if num > max:
+        max = num
+    if num < min:
+        min = num
+print(" ")
+print("min = ", min)
+print("max = ", max)
