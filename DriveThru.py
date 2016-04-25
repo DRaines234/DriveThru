@@ -27,6 +27,7 @@ class stats:
         self.order_time = 0 #time spent at order window
         self.payment_time = 0 # time spent at payment window
         self.pickup_time = 0 # time spent at pickup window
+        self.real_ending = 0 #real ending time for the system
 
 class time_structure:
     def __init__(self):
@@ -212,6 +213,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
     return_stats.order_time = return_stats.order_time / orderCompleteCount# / totalCars #gets average time per car
     return_stats.payment_time = return_stats.payment_time / paymentCompleteCount# / totalCars #gets average time per car
     return_stats.pickup_time = return_stats.pickup_time / processCompleteCount# / totalCars #gets average time per car
+    return_stats.real_ending = t.current
     #print(processCompleteCount)
     #print("totalCars:", totalCars)
     # print("arrivalCount:", arrivalCount)
@@ -281,20 +283,83 @@ def main():
 
     #run_sim(q1, q2, iterations)
     '''
+    q1A = []
+    q2A = []
+    order_time  = []
+    payment_time = []
+    pickup_time = []
+    totals = []
+
 
     for i in range(0,9):
-        stats = run_sim(q1,q2,iterations, interarrival)
+        #reset sums to 0
+        order_stuck_sum = 0
+        payment_stuck_sum = 0
+        total_time_sum = 0
+        time_at_order_sum = 0
+        time_at_payment_sum = 0
+        time_at_pickup_sum = 0
+        avg_real_ending_time = 0
+
+        for j in range(0,10):
+            stats = run_sim(q1,q2,iterations, interarrival)
+            #add the sums up
+            time_at_order_sum += stats.order_time
+            time_at_payment_sum += stats.payment_time
+            time_at_pickup_sum += stats.pickup_time
+            total_time_sum += stats.order_time + stats.payment_time + stats.pickup_time
+            avg_real_ending_time += stats.real_ending
+
+        #add to lists to make for easy exceling
+        q1A.append(q1)
+        q2A.append(q2)
+        order_time.append(time_at_order_sum / j)
+        payment_time.append(time_at_payment_sum / j)
+        pickup_time.append(time_at_pickup_sum / j)
+        totals.append(total_time_sum / j)
+        #calculate average and print result
+        '''
         print("payment window size = ", q1)
         print("pickup window size = ", q2)
-        print("average time stuck after order is complete = ", stats.avg_order_cant_mv_time)
-        print("average time stuck after payment is complete = ", stats.avg_payment_cant_mv_time)
-        print("average total time in drive thru = ", stats.order_time + stats.payment_time + stats.pickup_time)
+        print("average time stuck at order window = ", time_at_order_sum / j)
+        print("average time stuck at payment window= ", time_at_payment_sum / j)
+        print("average time stuck in pickup window = ", time_at_pickup_sum / j)
+        print("average total time in drive thru = ", total_time_sum / j)
+        #print("average ending time = ", avg_real_ending_time / j)
         print(" ")
+        '''
+        # change queue sizes to calculate the next round
         q1 += 1
         q2 -= 1
 
+    print("q1")
+    for stat in q1A:
+        print(stat)
 
+    print("-----------------")
+    print("q2")
+    for stat in q2A:
+        print(stat)
 
+    print("-----------------")
+    print("order time")
+    for stat in order_time:
+        print(stat)
+
+    print("-----------------")
+    print("payment time")
+    for stat in payment_time:
+        print(stat)
+
+    print("-----------------")
+    print("pickup time")
+    for stat in pickup_time:
+        print(stat)
+
+    print("-----------------")
+    print("average total time")
+    for stat in totals:
+        print(stat)
 
 
 if __name__ == "__main__":

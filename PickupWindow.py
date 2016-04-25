@@ -9,7 +9,7 @@ class PickupWindow:
     largestAmt = 0
 
     def get_service(self):
-        return rvgs.exponential(3) #chose exponential because it is skewed toward smaller numbers but if they mess up we have a possiblilty of getting higher numbers
+        return rvgs.exponential(2) #chose exponential because it is skewed toward smaller numbers but if they mess up we have a possiblilty of getting higher numbers
 
     def add_to_queue(self): # arrival
         self.queueSize += 1
