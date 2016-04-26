@@ -235,8 +235,8 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
         #--------------------------------------------------------------------------------------------------
 def main():
     #rngs.put_seed(0) # for more randomization optimization
-    q1 = 2
-    q2 = 10
+    q1 = 1
+    q2 = 8
     iterations = 60
     interarrival = 1.0
     monte_rounds = 500
@@ -291,7 +291,7 @@ def main():
     totals = []
 
 
-    for i in range(0,9):
+    for i in range(0,10):
         #reset sums to 0
         order_stuck_sum = 0
         payment_stuck_sum = 0
@@ -301,7 +301,7 @@ def main():
         time_at_pickup_sum = 0
         avg_real_ending_time = 0
 
-        for j in range(0,10):
+        for j in range(0,1000):
             stats = run_sim(q1,q2,iterations, interarrival)
             #add the sums up
             time_at_order_sum += stats.order_time
@@ -330,7 +330,7 @@ def main():
         '''
         # change queue sizes to calculate the next round
         q1 += 1
-        q2 -= 1
+
 
     print("q1")
     for stat in q1A:
