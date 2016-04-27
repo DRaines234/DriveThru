@@ -71,7 +71,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
 
     #currently without any intake from data
 
-    while(t.arrival < STOP or (order.get_queue_size() + payment.get_queue_size() + pickup.get_queue_size()) > 0): # keep running the simulation until we reach our stop time
+    while(t.arrival < STOP): # or (order.get_queue_size() + payment.get_queue_size() + pickup.get_queue_size()) > 0): # keep running the simulation until we reach our stop time
         event = EL.getNextEvent()
         nextTime = event.time # BAM! get our event from the heap in the event list! and get its time element
 
@@ -103,6 +103,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
                 moveOrder.time = t.current + service # we will still calculate the service time as if we were completing
                 EL.scheduleEvent(moveOrder)#add to event list
                 return_stats.order_time += service #scheduling a move order but we are still in the order queue
+                return_stats.avg_order_cant_mv_time += service #technically were stuck
 
             #schedule next arrival
             if t.current < STOP: # if we are still below our stop time, schedule another arrival
@@ -136,6 +137,7 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
                 paymentMove.time = t.current + service #add time as if we were processing a completion
                 EL.scheduleEvent(paymentMove)#add to event list
                 return_stats.payment_time += service # add the service time for the scheduled wait because we are still at the window
+                return_stats.avg_payment_cant_mv_time += service #technically we are stuck here
 
         #payment completion
         elif event.eventType.value == 3:
@@ -235,8 +237,8 @@ def run_sim(payQueueSize, pickupQueueSize, iterations, interarrival):
         #--------------------------------------------------------------------------------------------------
 def main():
     #rngs.put_seed(0) # for more randomization optimization
-    q1 = 2
-    q2 = 10
+    q1 = 5
+    q2 = 5
     iterations = 60
     interarrival = 1.0
     monte_rounds = 500
@@ -289,7 +291,9 @@ def main():
     payment_time = []
     pickup_time = []
     totals = []
-
+    interarrivals = []
+    percent_complete = []
+    rngs.put_seed(0)
 
     for i in range(0,9):
         #reset sums to 0
@@ -300,8 +304,11 @@ def main():
         time_at_payment_sum = 0
         time_at_pickup_sum = 0
         avg_real_ending_time = 0
+        percent_sum = 0
 
-        for j in range(0,10):
+
+
+        for j in range(0,100):
             stats = run_sim(q1,q2,iterations, interarrival)
             #add the sums up
             time_at_order_sum += stats.order_time
@@ -309,6 +316,8 @@ def main():
             time_at_pickup_sum += stats.pickup_time
             total_time_sum += stats.order_time + stats.payment_time + stats.pickup_time
             avg_real_ending_time += stats.real_ending
+            percent_sum += ((stats.processes_complete / stats.total_arrivals) * 100)
+
 
         #add to lists to make for easy exceling
         q1A.append(q1)
@@ -317,6 +326,8 @@ def main():
         payment_time.append(time_at_payment_sum / j)
         pickup_time.append(time_at_pickup_sum / j)
         totals.append(total_time_sum / j)
+        interarrivals.append(interarrival)
+        percent_complete.append(percent_sum / j)
         #calculate average and print result
         '''
         print("payment window size = ", q1)
@@ -329,8 +340,17 @@ def main():
         print(" ")
         '''
         # change queue sizes to calculate the next round
-        q1 += 1
-        q2 -= 1
+        #q1 += 1
+        #q2 += 1
+        interarrival -= 0.1
+
+        q1 += 3
+        q2 += 3
+    print("interarrival time")
+    for stat in interarrivals:
+        print(stat)
+
+    print("------------------")
 
     print("q1")
     for stat in q1A:
@@ -359,6 +379,11 @@ def main():
     print("-----------------")
     print("average total time")
     for stat in totals:
+        print(stat)
+
+    print("-----------------")
+    print("percentage of cars complete")
+    for stat in percent_complete:
         print(stat)
 
 
